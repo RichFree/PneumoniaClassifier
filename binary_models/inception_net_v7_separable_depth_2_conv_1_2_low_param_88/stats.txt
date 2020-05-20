@@ -1,0 +1,190 @@
+model_input = Input(shape=image_shape)
+
+conv_layer_1 = Conv2D(16, (3,3), activation='relu', padding='same')(model_input)
+conv_layer_1 = Conv2D(32, (3,3), activation='relu')(conv_layer_1)
+conv_layer_1 = BatchNormalization()(conv_layer_1)
+pooling_layer_1 = MaxPooling2D((2,2))(conv_layer_1)
+
+# conv_layer_2 = SeperableConv2D(128, (3,3), activation='relu', padding='same')(pooling_layer_1)
+# conv_layer_2 = BatchNormalization()(conv_layer_2)
+# pooling_layer_2 = MaxPooling2D((2,2))(conv_layer_2)
+
+conv_layer_2 = Conv2D(64, (3,3), activation='relu')(pooling_layer_1)
+conv_layer_2 = Conv2D(96, (3,3), activation='relu')(conv_layer_2)
+conv_layer_2 = BatchNormalization()(conv_layer_2)
+pooling_layer_2 = MaxPooling2D((2,2))(conv_layer_2)
+
+# # Inception v2
+# conv_layer_2 = Conv2D(32, (3,3), activation='relu', padding='same')(pooling_layer_1)
+# conv_layer_2 = BatchNormalization()(conv_layer_2)
+# pooling_layer_2 = MaxPooling2D((2,2))(conv_layer_2)
+# pooling_layer_2 = Conv2D(128, (1,1), activation='relu')(pooling_layer_2)
+
+x1 = Conv2D(64, (1,1), activation='relu')(pooling_layer_2)
+
+x2 = Conv2D(48, (1,1), activation='relu')(pooling_layer_2)
+x2 = Conv2D(64, (3,3), activation='relu', padding='same')(x2)
+
+x3 = Conv2D(32, (1,1), activation='relu')(pooling_layer_2)
+x3 = Conv2D(48, (5,5), activation='relu', padding='same')(x3)
+
+x4 = MaxPooling2D((3,3), strides=(1,1), padding='same')(pooling_layer_2)
+x4 = Conv2D(80, (1,1), activation='relu')(x4)
+
+inception_layer = concatenate([x1, x2, x3, x4])
+
+# # Inception v2
+
+model = DepthwiseConv2D((3,3), activation='relu')(inception_layer)
+
+model = SeparableConv2D(128, (3,3), activation='relu')(model)
+
+model = BatchNormalization()(model)
+
+model = Conv2D(80, (1,1), activation='relu')(model)
+
+model = BatchNormalization()(model)
+
+model = MaxPooling2D((2,2))(model)
+
+# model = Conv2D(64, (1,1), activation='relu')(inception_layer)
+
+model = Flatten()(model)
+
+model = Dense(128, activation='relu')(model)
+
+model = Dropout(0.5)(model)
+
+model_output = Dense(1, activation='sigmoid')(model)
+
+model = Model(inputs=model_input, outputs=model_output)
+
+model.compile(loss='binary_crossentropy',
+              optimizer='RMSProp',
+              metrics=['accuracy'])
+
+Model: "model_18"
+__________________________________________________________________________________________________
+Layer (type)                    Output Shape         Param #     Connected to                     
+==================================================================================================
+input_22 (InputLayer)           [(None, 112, 112, 1) 0                                            
+__________________________________________________________________________________________________
+conv2d_206 (Conv2D)             (None, 112, 112, 16) 160         input_22[0][0]                   
+__________________________________________________________________________________________________
+conv2d_207 (Conv2D)             (None, 110, 110, 32) 4640        conv2d_206[0][0]                 
+__________________________________________________________________________________________________
+batch_normalization_59 (BatchNo (None, 110, 110, 32) 128         conv2d_207[0][0]                 
+__________________________________________________________________________________________________
+max_pooling2d_66 (MaxPooling2D) (None, 55, 55, 32)   0           batch_normalization_59[0][0]     
+__________________________________________________________________________________________________
+conv2d_208 (Conv2D)             (None, 53, 53, 64)   18496       max_pooling2d_66[0][0]           
+__________________________________________________________________________________________________
+conv2d_209 (Conv2D)             (None, 51, 51, 96)   55392       conv2d_208[0][0]                 
+__________________________________________________________________________________________________
+batch_normalization_60 (BatchNo (None, 51, 51, 96)   384         conv2d_209[0][0]                 
+__________________________________________________________________________________________________
+max_pooling2d_67 (MaxPooling2D) (None, 25, 25, 96)   0           batch_normalization_60[0][0]     
+__________________________________________________________________________________________________
+conv2d_211 (Conv2D)             (None, 25, 25, 48)   4656        max_pooling2d_67[0][0]           
+__________________________________________________________________________________________________
+conv2d_213 (Conv2D)             (None, 25, 25, 32)   3104        max_pooling2d_67[0][0]           
+__________________________________________________________________________________________________
+max_pooling2d_68 (MaxPooling2D) (None, 25, 25, 96)   0           max_pooling2d_67[0][0]           
+__________________________________________________________________________________________________
+conv2d_210 (Conv2D)             (None, 25, 25, 64)   6208        max_pooling2d_67[0][0]           
+__________________________________________________________________________________________________
+conv2d_212 (Conv2D)             (None, 25, 25, 64)   27712       conv2d_211[0][0]                 
+__________________________________________________________________________________________________
+conv2d_214 (Conv2D)             (None, 25, 25, 48)   38448       conv2d_213[0][0]                 
+__________________________________________________________________________________________________
+conv2d_215 (Conv2D)             (None, 25, 25, 80)   7760        max_pooling2d_68[0][0]           
+__________________________________________________________________________________________________
+concatenate_21 (Concatenate)    (None, 25, 25, 256)  0           conv2d_210[0][0]                 
+                                                                 conv2d_212[0][0]                 
+                                                                 conv2d_214[0][0]                 
+                                                                 conv2d_215[0][0]                 
+__________________________________________________________________________________________________
+depthwise_conv2d_17 (DepthwiseC (None, 23, 23, 256)  2560        concatenate_21[0][0]             
+__________________________________________________________________________________________________
+separable_conv2d_20 (SeparableC (None, 21, 21, 128)  35200       depthwise_conv2d_17[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_61 (BatchNo (None, 21, 21, 128)  512         separable_conv2d_20[0][0]        
+__________________________________________________________________________________________________
+conv2d_216 (Conv2D)             (None, 21, 21, 80)   10320       batch_normalization_61[0][0]     
+__________________________________________________________________________________________________
+batch_normalization_62 (BatchNo (None, 21, 21, 80)   320         conv2d_216[0][0]                 
+__________________________________________________________________________________________________
+max_pooling2d_69 (MaxPooling2D) (None, 10, 10, 80)   0           batch_normalization_62[0][0]     
+__________________________________________________________________________________________________
+flatten_18 (Flatten)            (None, 8000)         0           max_pooling2d_69[0][0]           
+__________________________________________________________________________________________________
+dense_36 (Dense)                (None, 128)          1024128     flatten_18[0][0]                 
+__________________________________________________________________________________________________
+dropout_18 (Dropout)            (None, 128)          0           dense_36[0][0]                   
+__________________________________________________________________________________________________
+dense_37 (Dense)                (None, 1)            129         dropout_18[0][0]                 
+==================================================================================================
+Total params: 1,240,257
+Trainable params: 1,239,585
+Non-trainable params: 672
+__________________________________________________________________________________________________
+
+WARNING:tensorflow:sample_weight modes were coerced from
+  ...
+    to  
+  ['...']
+WARNING:tensorflow:sample_weight modes were coerced from
+  ...
+    to  
+  ['...']
+Train for 326 steps, validate for 39 steps
+Epoch 1/25
+326/326 [==============================] - 159s 488ms/step - loss: 0.6327 - accuracy: 0.8284 - val_loss: 1.7903 - val_accuracy: 0.6250
+Epoch 2/25
+326/326 [==============================] - 157s 483ms/step - loss: 0.3733 - accuracy: 0.8763 - val_loss: 4.3360 - val_accuracy: 0.6266
+Epoch 3/25
+326/326 [==============================] - 158s 484ms/step - loss: 0.3169 - accuracy: 0.9053 - val_loss: 4.9068 - val_accuracy: 0.6763
+Epoch 4/25
+326/326 [==============================] - 157s 483ms/step - loss: 0.2766 - accuracy: 0.9132 - val_loss: 1.1897 - val_accuracy: 0.8253
+Epoch 5/25
+326/326 [==============================] - 163s 500ms/step - loss: 0.2537 - accuracy: 0.9133 - val_loss: 5.5818 - val_accuracy: 0.6330
+Epoch 6/25
+326/326 [==============================] - 157s 482ms/step - loss: 0.2342 - accuracy: 0.9233 - val_loss: 0.4672 - val_accuracy: 0.8381
+Epoch 7/25
+326/326 [==============================] - 157s 480ms/step - loss: 0.2145 - accuracy: 0.9239 - val_loss: 4.5400 - val_accuracy: 0.6827
+Epoch 8/25
+326/326 [==============================] - 157s 480ms/step - loss: 0.2036 - accuracy: 0.9340 - val_loss: 2.7474 - val_accuracy: 0.6250
+Epoch 9/25
+326/326 [==============================] - 159s 487ms/step - loss: 0.1933 - accuracy: 0.9358 - val_loss: 0.6537 - val_accuracy: 0.8590
+Epoch 10/25
+326/326 [==============================] - 166s 510ms/step - loss: 0.1906 - accuracy: 0.9406 - val_loss: 3.6098 - val_accuracy: 0.6394
+Epoch 11/25
+326/326 [==============================] - 166s 508ms/step - loss: 0.1750 - accuracy: 0.9379 - val_loss: 1.5689 - val_accuracy: 0.7708
+Epoch 12/25
+326/326 [==============================] - 164s 502ms/step - loss: 0.1649 - accuracy: 0.9442 - val_loss: 3.6101 - val_accuracy: 0.6522
+Epoch 13/25
+326/326 [==============================] - 156s 479ms/step - loss: 0.1694 - accuracy: 0.9471 - val_loss: 3.5132 - val_accuracy: 0.6490
+Epoch 14/25
+326/326 [==============================] - 156s 478ms/step - loss: 0.1689 - accuracy: 0.9454 - val_loss: 0.9105 - val_accuracy: 0.7580
+Epoch 15/25
+326/326 [==============================] - 156s 478ms/step - loss: 0.1514 - accuracy: 0.9494 - val_loss: 1.1921 - val_accuracy: 0.8205
+Epoch 16/25
+326/326 [==============================] - 149s 457ms/step - loss: 0.1405 - accuracy: 0.9498 - val_loss: 1.2384 - val_accuracy: 0.6955
+Epoch 17/25
+326/326 [==============================] - 151s 462ms/step - loss: 0.0935 - accuracy: 0.9689 - val_loss: 0.5337 - val_accuracy: 0.8878
+Epoch 18/25
+326/326 [==============================] - 147s 452ms/step - loss: 0.0944 - accuracy: 0.9693 - val_loss: 0.5916 - val_accuracy: 0.8702
+Epoch 19/25
+326/326 [==============================] - 147s 450ms/step - loss: 0.0810 - accuracy: 0.9718 - val_loss: 0.6088 - val_accuracy: 0.8734
+Epoch 20/25
+326/326 [==============================] - 144s 443ms/step - loss: 0.0776 - accuracy: 0.9701 - val_loss: 0.6711 - val_accuracy: 0.8429
+Epoch 21/25
+326/326 [==============================] - 147s 451ms/step - loss: 0.0715 - accuracy: 0.9751 - val_loss: 0.6174 - val_accuracy: 0.8558
+Epoch 22/25
+326/326 [==============================] - 150s 459ms/step - loss: 0.0765 - accuracy: 0.9732 - val_loss: 1.2333 - val_accuracy: 0.7548
+Epoch 23/25
+326/326 [==============================] - 146s 447ms/step - loss: 0.0702 - accuracy: 0.9753 - val_loss: 0.7176 - val_accuracy: 0.8397
+Epoch 24/25
+326/326 [==============================] - 150s 461ms/step - loss: 0.0661 - accuracy: 0.9774 - val_loss: 0.7251 - val_accuracy: 0.8349
+Epoch 25/25
+326/326 [==============================] - 153s 468ms/step - loss: 0.0652 - accuracy: 0.9789 - val_loss: 0.8182 - val_accuracy: 0.8157

@@ -1,2 +1,2 @@
-# CS3244-PneumoniaClassificationCNN
-Code implementation for pneumonia classification using InceptionNet architecture as part of CS3244 Machine Learning term project
+# Pneumonia Classifier
+Application of InceptionNet architecture for pneumonia classification as part of a term project for NUS CS3244 Machine Learning.
